@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+    <head>
+        <title>javascript</title>
+        <script type="text/javascript" src="event.js"></script>
+    </head>
+    <body>
+        <input id="myBtn" type="button" value="click me"/>
+    </body>
+</html>
+<script>
+    var btn = document.getElementById("myBtn");
+    btn.addEventListener("click", function(event) {
+        alert(event.type);
+    }, true);
+</script>
