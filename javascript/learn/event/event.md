@@ -49,7 +49,7 @@
 
 ​	“DOM2级事件”规定的事件流包括三个阶段：事件捕获阶段、处于目标阶段和事件冒泡阶段。首先发生的是事件捕获，为截获事件提供了机会。然后是实际的目标接收到事件。最后一个阶段是冒泡阶段，可以在这个阶段对事件做出响应。以前面简单的 HTML 页面为例，单击` <div> `元素会按照图13-3所示顺序触发事件。
 
-![Snipaste_2018-11-15_10-59-51](D:\workspace\proj\github\learn\JavaScript\javascript\learn\event\Snipaste_2018-11-15_10-59-51.jpg)
+![Snipaste_2018-11-15_10-59-51](Snipaste_2018-11-15_10-59-51.jpg)
 
 ​	在 DOM 事件流中，实际的目标（ `<div>` 元素）在捕获阶段不会接收到事件。这意味着在捕获阶段，事件从 document 到` <html>` 再到` <body> `后就停止了。下一个阶段是“处于目标”阶段，于是事件在` <div>`上发生，并在事件处理（后面将会讨论这个概念）中被看成冒泡阶段的一部分。然后，冒泡阶段发生，事件又传播回文档。
 
@@ -476,11 +476,216 @@ EventUtil.addHandler(window, "load", function(){
 
 ####  unload 事件
 
-与 load 事件对应的是 unload 事件，这个事件在文档被完全卸载后触发。只要用户从一个页面切换到另一个页面，就会发生 unload 事件。而利用这个事件最多的情况是清除引用，以避免内存泄漏。与 load 事件类似，也有两种指定 onunload 事件处理程序的方式。第一种方式是使用 JavaScript，如下所示：
+​	与 load 事件对应的是 unload 事件，这个事件在文档被完全卸载后触发。只要用户从一个页面切换到另一个页面，就会发生 unload 事件。而利用这个事件最多的情况是清除引用，以避免内存泄漏。与 load 事件类似，也有两种指定 onunload 事件处理程序的方式。第一种方式是使用 JavaScript，如下所示：
 
-```
+```javascript
 EventUtil.addHandler(window, "unload", function(event){
-alert("Unloaded");
+	alert("Unloaded");
+});
+```
+
+​	指定事件处理程序的第二种方式，也是为` <body> `元素添加一个特性（与 load 事件相似） ，如下面的例子所示：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Unload Event Example</title>
+	</head>
+	<body onunload="alert('Unloaded!')">
+	</body>
+</html>
+```
+
+​	无论使用哪种方式，都要小心编写 onunload 事件处理程序中的代码。既然 unload 事件是在一切都被卸载之后才触发，那么在页面加载后存在的那些对象，此时就不一定存在了。此时，操作 DOM节点或者元素的样式就会导致错误。
+
+#### resize事件
+
+​	当浏览器窗口被调整到一个新的高度或宽度时，就会触发 resize 事件。这个事件在 window （窗口）上面触发，因此可以通过 JavaScript 或者 `<body> `元素中的 onresize 特性来指定事件处理程序。如：
+
+```javascript
+EventUtil.addHandler(window, "resize", function(event){
+	alert("Resized");
+});
+```
+
+#### scroll事件
+
+​	虽然 scroll 事件是在 window 对象上发生的，但它实际表示的则是页面中相应元素的变化。在混杂模式下，可以通过 `<body> `元素的 scrollLeft 和 scrollTop 来监控到这一变化；而在标准模式下，除 Safari 之外的所有浏览器都会通过` <html>` 元素来反映这一变化（Safari 仍然基于` <body> `跟踪滚动位置） ：
+
+```javascript
+EventUtil.addHandler(window, "scroll", function(event){
+	if (document.compatMode == "CSS1Compat"){
+		alert(document.documentElement.scrollTop);
+	} else {
+		alert(document.body.scrollTop);
+	}
+});
+```
+
+### 焦点事件
+
+​	焦点事件会在页面元素获得或失去焦点时触发。 利用这些事件并与 document.hasFocus() 方法及document.activeElement 属性配合，可以知晓用户在页面上的行踪。有以下 6 个焦点事件：
+
+- blur ：在元素失去焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- DOMFocusIn ：在元素获得焦点时触发。这个事件与 HTML 事件 focus 等价，但它冒泡。只有Opera 支持这个事件。DOM3 级事件废弃了 DOMFocusIn ，选择了 focusin 。
+- DOMFocusOut ： 在元素失去焦点时触发。 这个事件是 HTML 事件 blur 的通用版本。 只有 Opera支持这个事件。DOM3 级事件废弃了 DOMFocusOut ，选择了 focusout 。
+- focus ：在元素获得焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- focusin ：在元素获得焦点时触发。这个事件与 HTML 事件 focus 等价，但它冒泡。支持这个事件的浏览器有 IE5.5+、Safari 5.1+、Opera 11.5+和 Chrome。
+- focusout ：在元素失去焦点时触发。这个事件是 HTML 事件 blur 的通用版本。支持这个事件的浏览器有 IE5.5+、Safari 5.1+、Opera 11.5+和 Chrome。
+
+​	这一类事件中最主要的两个是 focus 和 blur ，它们都是 JavaScript 早期就得到所有浏览器支持的事件。 这些事件的最大问题是它们不冒泡。 因此， IE 的 focusin 和 focusout 与 Opera 的 DOMFocusIn和 DOMFocusOut 才会发生重叠。IE 的方式最后被 DOM3 级事件采纳为标准方式。
+
+​	当焦点从页面中的一个元素移动到另一个元素，会依次触发下列事件：
+
+- focusout 在失去焦点的元素上触发；
+-  focusin 在获得焦点的元素上触发；
+-  blur 在失去焦点的元素上触发；
+-  DOMFocusOut 在失去焦点的元素上触发；
+-  focus 在获得焦点的元素上触发；
+-  DOMFocusIn 在获得焦点的元素上触发。
+
+其中， blur 、 DOMFocusOut 和 focusout 的事件目标是失去焦点的元素； 而 focus 、 DOMFocusIn和 focusin 的事件目标是获得焦点的元素。
+
+​	要确定浏览器是否支持这些事件，可以使用如下代码：
+
+```javascript
+var isSupported = document.implementation.hasFeature("FocusEvent", "3.0");
+```
+
+### 鼠标与滚轮事件
+
+​	鼠标事件是 Web 开发中最常用的一类事件，毕竟鼠标还是最主要的定位设备。DOM3 级事件中定义了 9 个鼠标事件，简介如下：
+
+- click ：在用户单击主鼠标按钮（一般是左边的按钮）或者按下回车键时触发。这一点对确保易访问性很重要，意味着 onclick 事件处理程序既可以通过键盘也可以通过鼠标执行。
+- dblclick ：在用户双击主鼠标按钮（一般是左边的按钮）时触发。从技术上说，这个事件并不是 DOM2 级事件规范中规定的， 但鉴于它得到了广泛支持， 所以 DOM3 级事件将其纳入了标准。
+- mousedown ：在用户按下了任意鼠标按钮时触发。不能通过键盘触发这个事件。
+- mouseenter ：在鼠标光标从元素外部首次移动到元素范围之内时触发。这个事件不冒泡，而且在光标移动到后代元素上不会触发。DOM2 级事件并没有定义这个事件，但 DOM3 级事件将它纳入了规范。IE、Firefox 9+和 Opera 支持这个事件。
+- mouseleave ：在位于元素上方的鼠标光标移动到元素范围之外时触发。这个事件不冒泡，而且在光标移动到后代元素上不会触发。DOM2 级事件并没有定义这个事件，但 DOM3 级事件将它纳入了规范。IE、Firefox 9+和 Opera 支持这个事件。
+- mousemove ：当鼠标指针在元素内部移动时重复地触发。不能通过键盘触发这个事件。
+- mouseout ：在鼠标指针位于一个元素上方，然后用户将其移入另一个元素时触发。又移入的另一个元素可能位于前一个元素的外部， 也可能是这个元素的子元素。 不能通过键盘触发这个事件。
+- mouseover ：在鼠标指针位于一个元素外部，然后用户将其首次移入另一个元素边界之内时触发。不能通过键盘触发这个事件。
+- mouseup ：在用户释放鼠标按钮时触发。不能通过键盘触发这个事件。
+
+页面上的所有元素都支持鼠标事件。除了 mouseenter 和 mouseleave ，所有鼠标事件都会冒泡，也可以被取消，而取消鼠标事件将会影响浏览器的默认行为。取消鼠标事件的默认行为还会影响其他事件，因为鼠标事件与其他事件是密不可分的关系。
+
+​	只有在同一个元素上相继触发 mousedown 和 mouseup 事件，才会触发 click 事件；如果mousedown 或 mouseup 中的一个被取消，就不会触发 click 事件。类似地，只有触发两次 click 事件， 才会触发一次 dblclick 事件。 如果有代码阻止了连续两次触发 click 事件 （可能是直接取消 click事件，也可能通过取消 mousedown 或 mouseup 间接实现） ，那么就不会触发 dblclick 事件了。这 4个事件触发的顺序始终如下：
+
+1. mousedown
+2.  mouseup
+3.  click
+4. mousedown
+5.  mouseup
+6. click
+7. dblclick
+
+使用以下代码可以检测浏览器是否支持以上 DOM2 级事件（除 dbclick 、 mouseenter 和mouseleave 之外） ：
+
+```javascript
+var isSupported = document.implementation.hasFeature("MouseEvents", "2.0");
+```
+
+要检测浏览器是否支持上面的所有事件，可以使用以下代码：
+
+```javascript
+var isSupported = document.implementation.hasFeature("MouseEvent", "3.0")
+```
+
+**注意**：DOM3 级事件的 feature 名是 "MouseEvent" ，而非 "MouseEvents" 。
+
+#### 客户区坐标位置
+
+​	鼠标事件都是在浏览器视口中的特定位置上发生的。这个位置信息保存在事件对象的 clientX 和clientY 属性中。所有浏览器都支持这两个属性，它们的值表示事件发生时鼠标指针在视口中的水平和垂直坐标。
+
+![](Snipaste_2018-11-19_15-17-02.png)
+
+可以使用类似下列代码取得鼠标事件的客户端坐标信息：
+
+```javascript
+var div = document.getElementById("myDiv");
+	EventUtil.addHandler(div, "click", function(event){
+	event = EventUtil.getEvent(event);
+	alert("Client coordinates: " + event.clientX + "," + event.clientY);
+});
+```
+
+#### 修改键
+
+​	虽然鼠标事件主要是使用鼠标来触发的， 但在按下鼠标时键盘上的某些键的状态也可以影响到所要采取的作。这些修改键就是 Shift、Ctrl、Alt 和 Meta（在 Windows键盘中是 Windows键，在苹果机中是 Cmd 键） 它们经常被用来修改鼠标事件的行为。DOM 为此规定了 4 个属性，表示这些修改键的状态： shiftKey 、 ctrlKey 、 altKey 和 metaKey 。这些属性中包含的都是布尔值，如果相应的键被按下了，则值为 true ，否则值为 false 。当某个鼠标事件发生时，通过检测这几个属性就可以确定用户是否同时按下了其中的键。
+
+```javascript
+function setKey() {
+    var div = document.getElementById("myDiv");
+    EventUtil.addHandler(div, "click", function (event) {
+        event = EventUtil.getEvent(event);
+        var keys = new Array();
+        if (event.shiftKey) {
+            keys.push("shift");
+        }
+        if (event.ctrlKey) {
+            keys.push("ctrl");
+        }
+        if (event.altKey) {
+            keys.push("alt");
+        }
+        if (event.metaKey) {
+            keys.push("meta");
+        }
+        alert("Keys: " + keys.join(","));
+    });
+}
+```
+
+#### 鼠标按钮
+
+​	只有在主鼠标按钮被单击（或键盘回车键被按下）时才会触发 click 事件，因此检测按钮的信息并不是必要的。但对于 mousedown 和 mouseup 事件来说，则在其 event 对象存在一个 button 属性，表示按下或释放的按钮。DOM 的 button 属性可能有如下 3 个值： 0 表示主鼠标按钮， 1 表示中间的鼠标按钮（鼠标滚轮按钮） ， 2 表示次鼠标按钮。在常规的设置中，主鼠标按钮就是鼠标左键，而次鼠标按钮就是鼠标右键。
+
+- 0 ：表示没有按下按钮。
+- 1 ：表示按下了主鼠标按钮。
+- 2 ：表示按下了次鼠标按钮。
+- 3 ：表示同时按下了主、次鼠标按钮。
+- 4 ：表示按下了中间的鼠标按钮。
+- 5 ：表示同时按下了主鼠标按钮和中间的鼠标按钮。
+-  6 ：表示同时按下了次鼠标按钮和中间的鼠标按钮。
+- 7 ：表示同时按下了三个鼠标按钮。
+
+​	不难想见，DOM模型下的 button 属性比 IE 模型下的 button 属性更简单也更为实用，因为同时按下多个鼠标按钮的情形十分罕见。最常见的做法就是将 IE 模型规范化为 DOM 方式，毕竟除 IE8 及更早版本之外的其他浏览器都原生支持 DOM模型。而对主、中、次按钮的映射并不困难，只要将 IE 的其他选项分别转换成如同按下这三个按键中的一个即可（同时将主按钮作为优先选取的对象） 。换句话说，IE 中返回的 5 和 7 会被转换成 DOM 模型中的 0 。
+
+​	由于单独使用能力检测无法确定差异（两种模型有同名的 button 属性） ，因此必须另辟蹊径。我们知道，支持 DOM 版鼠标事件的浏览器可以通过 hasFearture() 方法来检测，所以可以再为EventUtil 对象添加如下 getButton() 方法。
+
+```javascript
+var EventUtil = {
+//省略了其他代码
+    getButton: function (event) {
+        if (document.implementation.hasFeature("MouseEvents", "2.0")) {
+            return event.button;
+        } else {
+            switch (event.button) {
+                case 0:
+                case 1:
+                case 3:
+                case 5:
+                case 7:
+                    return 0;
+                case 2:
+                case 6:
+                    return 2;
+                case 4:
+                    return 1;
+            }
+        }
+    },
+//省略了其他代码
+};
+```
+
+​	通过检测 "MouseEvents" 这个特性，就可以确定 event 对象中存在的 button 属性中是否包含正确的值。如果测试失败，说明是 IE，就必须对相应的值进行规范化。以下是使用该方法的示例：
+
+```javascript
+var div = document.getElementById("myDiv");
+EventUtil.addHandler(div, "mousedown", function(event){
+	event = EventUtil.getEvent(event);
+	alert(EventUtil.getButton(event));
 });
 ```
 

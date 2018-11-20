@@ -155,11 +155,11 @@
   }
   ```
 
-  ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\bom_dom\Snipaste_2018-11-13_09-31-55.jpg)
+  ![](Snipaste_2018-11-13_09-31-55.jpg)
 
-  ![Snipaste_2018-11-13_09-32-47](D:\workspace\proj\github\learn\JavaScript\javascript\learn\bom_dom\Snipaste_2018-11-13_09-32-47.jpg)
+  ![Snipaste_2018-11-13_09-32-47](Snipaste_2018-11-13_09-32-47.jpg)
 
-  ![Snipaste_2018-11-13_09-33-58](D:\workspace\proj\github\learn\JavaScript\javascript\learn\bom_dom\Snipaste_2018-11-13_09-33-58.jpg)
+  ![Snipaste_2018-11-13_09-33-58](Snipaste_2018-11-13_09-33-58.jpg)
 
 ## location对象
 
@@ -176,14 +176,14 @@
   | 属性名   | 例子                 | 说明                                                         |
   | -------- | -------------------- | ------------------------------------------------------------ |
   | hash     | "#contents"          | 返回URL中的hash（#号后跟零或多个字符），如果URL
-中不包含散列，则返回空字符串 |
+  中不包含散列，则返回空字符串 |
   | host     | "www.wrox.com:80"    | 返回服务器名称和端口号（如果有）                             |
   | hostname | "www.wrox.com"       | 返回不带端口号的服务器名称                                   |
   | href     | "http:/www.wrox.com" | 返回当前加载页面的完整URL。而location对象的
-<br/>toString()方法也返回这个值 |
+  <br/>toString()方法也返回这个值 |
   | pathname | "/WileyCDA/"         | 返回URL中的目录和（或）文件名                                |
   | port     | "8080"               | 返回URL中指定的端口号。如果URL中不包含端口号，则
-<br/>这个属性返回空字符串 |
+  <br/>这个属性返回空字符串 |
   | protocol | "http:"              | 返回页面使用的协议。通常是http:或https:                      |
   | search   | "?q=javascript"      | 返回URL的查询字符串。这个字符串以问号开头                    |
 

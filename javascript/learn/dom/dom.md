@@ -1424,7 +1424,7 @@ sheet.deleteRule(0); //DOM 方法
 
 ​	其中， offsetLeft 和 offsetTop 属性与包含元素有关，包含元素的引用保存在 offsetParent属性中。 offsetParent 属性不一定与 parentNode 的值相等。例如， `<td> `元素的 offsetParent 是作为其祖先元素的 `<table> `元素，因为 `<table> `是在 DOM层次中距` <td> `最近的一个具有大小的元素。
 
-![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\dom\Snipaste_2018-11-15_10-03-36.jpg)
+![](Snipaste_2018-11-15_10-03-36.jpg)
 
 ​	要想知道某个元素在页面上的偏移量，将这个元素的 offsetLeft 和 offsetTop 与其 offsetParent的相同属性相加，如此循环直至根元素，就可以得到一个基本准确的值。以下两个函数就可以用于分别取得元素的左和上偏移量。
 
@@ -1454,7 +1454,7 @@ function getElementTop(element){
 
 ​	元素的客户区大小（client dimension），指的是元素内容及其内边距所占据的空间大小。有关客户区大小的属性有两个： clientWidth 和 clientHeight 。其中， clientWidth 属性是元素内容区宽度加上左右内边距宽度； clientHeight 属性是元素内容区高度加上上下内边距高度。图 12-2 形象地说明了这些属性表示的大小：
 
-![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\dom\Snipaste_2018-11-15_10-11-11.jpg)
+![](Snipaste_2018-11-15_10-11-11.jpg)
 
 ##### 滚动大小
 
@@ -1475,7 +1475,7 @@ function getElementTop(element){
 
 - IE（在标准模式）中的这两组属性不相等，其中 scrollWidth 和 scrollHeight 等于文档内容区域的大小，而 clientWidth 和 clientHeight 等于视口大小。
 
-  ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\dom\Snipaste_2018-11-15_10-21-04.jpg)
+  ![](Snipaste_2018-11-15_10-21-04.jpg)
 
   ​	在确定文档的总高度时（包括基于视口的最小高度时），必须取得 scrollWidth/clientWidth 和scrollHeight/clientHeight 中的最大值，才能保证在跨浏览器的环境下得到精确的结果。下面就是这样一个例子：
 

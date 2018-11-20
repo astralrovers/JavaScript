@@ -439,7 +439,7 @@
 
 
       普通对象和函数对象目前看起来比较大的差异就是，函数对象在创建时会被创建一个`prototype`属性，二普通实例没有。
-
+    
       ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_13-35-37.jpg)
 
   - 用原型方式创建实例：
@@ -520,7 +520,7 @@
 
     引用原图：
 
-    ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_14-11-24.jpg)
+    ![](Snipaste_2018-11-08_14-11-24.jpg)
 
   - 简单一些的创建方式：
 
@@ -612,7 +612,7 @@
 
     原图说明：
 
-    ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_14-39-07.jpg)
+    ![](Snipaste_2018-11-08_14-39-07.jpg)
 
     **注**：不建议重写或定义基本类型（`Object`、`Array`等）原型对象中的方法。
 
@@ -760,11 +760,11 @@
 
   原图：
 
-  ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_16-34-15.jpg)
+  ![](Snipaste_2018-11-08_16-34-15.jpg)
 
   结合另外一张图：
 
-  ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_16-35-19.jpg)
+  ![](Snipaste_2018-11-08_16-35-19.jpg)
 
   **注**：不要重写原型链。
 
@@ -887,5 +887,5 @@
   };
   ```
 
-  ![](D:\workspace\proj\github\learn\JavaScript\javascript\learn\Snipaste_2018-11-08_17-34-22.jpg)
+  ![](Snipaste_2018-11-08_17-34-22.jpg)
 
