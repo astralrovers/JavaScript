@@ -16,11 +16,44 @@
         <br/>
         <input type="submit" value="submit"/>
     </form>
+    <form>
+        <input type="text" name="tel1" id="txtTel1" maxlength="3">
+        <input type="text" name="tel2" id="txtTel2" maxlength="3">
+        <input type="text" name="tel3" id="txtTel3" maxlength="4">
+        <input type="email" name="email">
+        <input type="url" name="url">
+    </form>
 </body>
 
 </html>
 <script>
     //setReset();
     //useFormElements();
-    tsetFormEvent();
+    //tsetFormEvent();
+
+    (function () {
+        function tabForward(event) {
+            event = EventUtil.getEvent(event);
+            var target = EventUtil.getTarget(event);
+            if (target.value.length == target.maxLength) {
+                var form = target.form;
+                for (var i = 0, len = form.elements.length; i < len; i++) {
+                    if (form.elements[i] == target) {
+                        if (form.elements[i + 1]) {
+                            form.elements[i + 1].focus();
+                        }
+                        return;
+                    }
+                }
+            }
+
+        }
+        var box1 = document.getElementById("txtTel1");
+        var box2 = document.getElementById("txtTel2");
+        var box3 = document.getElementById("txtTel3");
+
+        EventUtil.addHandler(box1, "keyup", tabForward);
+        EventUtil.addHandler(box2, "keyup", tabForward);
+        EventUtil.addHandler(box3, "keyup", tabForward);
+    })();
 </script>
