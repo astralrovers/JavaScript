@@ -333,7 +333,7 @@
 
       其他的属性和方法将从`Object`对象继承而来。
 
-      ```
+      ```javascript
       function Person(name, age) {
           this.name = name;
           this.age = age;

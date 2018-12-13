@@ -163,7 +163,7 @@
   console.log(print_argc.length);  // out : 2
   ```
 
-- `prototype`是一个非常特殊且重要的属性，对于引用类型来说，`prototype`是保存它们所有实例方法的真正所在。像toString()，valueOf()都保存在`prototype`名下，只不过通过各自的实例对象访问罢了。在继承的实现中纪委重要。`prototype`无法被枚举，因此`for-in`是无法发现的。
+- `prototype`是一个非常特殊且重要的属性，对于引用类型来说，`prototype`是保存它们所有实例方法的真正所在。像toString()，valueOf()都保存在`prototype`名下，只不过通过各自的实例对象访问罢了。在继承的实现中极为重要。`prototype`无法被枚举，因此`for-in`是无法发现的。
 
 - 非继承而来的方法`apply()`和`call()`，两个方法非常类似。第一个参数是在其中运行函数的作用域，另一个是参数数组。
 
