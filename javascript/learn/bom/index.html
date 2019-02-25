@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+    <head>
+        <title>javascript</title>
+        <!--<script type='text/javascript' src='frame.js'></script>-->
+    </head>
+    <script type="text/javascript">
+        function print_name() {
+            alert("hello world");
+        }
+    </script>
+    <frameset rows="160,*">
+        <frame src="frame.html" name="TopFrame">
+        <frameset cols="50%, 50%">
+            <frame src="frame.html" name="MidFrame">
+            <frame src="frame.html" name="LastFrame">
+        </frameset>
+    </frameset>
+    <body>
+    </body>
+</html>
