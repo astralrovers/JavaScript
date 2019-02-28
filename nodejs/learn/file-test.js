@@ -13,7 +13,8 @@
  *********************************    ***************************************/
 var fs = require('fs');
 
-fs.readFile('fs.txt', 'utf-8', function(err, data){
+fs.readFile('hello.js', 'utf-8', function(err, data){
+    console.log("异步");
     if(err){
         console.error(err);
     }
@@ -21,4 +22,8 @@ fs.readFile('fs.txt', 'utf-8', function(err, data){
         console.log(data);
     }
 });
+
+let data = fs.readFileSync('hello.js');
+console.log(data.toString());
+
 console.log('end');     /* print 'end' before 'err' or 'data' */
