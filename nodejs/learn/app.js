@@ -74,9 +74,14 @@ NODE_MODULES_PATHS(START)
 /*
  * 事件编程
     * */
+let fs  = require("fs");
 http.createServer(function(req, res){
+    // req, res类似于流，具有流的方法:
     res.writeHead(200, {'Content-Type':'text/html'});
-    res.write('<h1>Node.js</h1>');
-    res.end('<p>Hello world!</p>');
+    //res.write('<h1>Node.js</h1>');
+    //res.end('<p>Hello world!</p>');
+    // 通过流方法直接返回：
+    let html = fs.createReadStream(__dirname + '/index.html', 'utf8');
+    html.pipe(res);
 }).listen(3000);
 console.log('Http server is listen at port 3000.');
