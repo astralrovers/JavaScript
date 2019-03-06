@@ -339,7 +339,7 @@ console.log("B : ", bonus.getBonus());
 
 ### JavaScript实现
 
-像上边这种方式在使用时，我总得知道有`Bonus`对象和它的方法，并且也得清楚有哪些策略可以用，我们可以定义成下面这种格式：
+像上边这种方式在使用时，我总得知道有`Bonus`对象和它的方法，并且也可能存在我只想通过等级直接得到结果，并不想知道要用哪些策略，我们可以定义成下面这种格式：
 
 ```javascript
 let strategies = {
@@ -382,3 +382,72 @@ console.log(calculateBonus('S', 15000));
 
 
 对于`C`语言实现方式也是类似的，可以封装一组策略接口，然后在调度时传入某个策略；也可以将策略和其对应的主键存放的数组中，采用循环的方式去查找对应的策略。
+
+## 代理模式
+
+> **无法直接访问，或者不方便访问，或者直接访问效果不佳，可以采用中间人来做中转，我直接访问中间人，中间人帮我访问目标人。**
+
+### 简单例子说明
+
+小明像给暗恋的女神送花，但是他本人比较内向，又怕被拒绝，不过他和女神有一个共同的朋友翠花，那么小明就让翠花代自己送花给女神：
+
+```javascript
+let xiaoming = {
+    sendFlower: (target) => {
+        target.recvFlower("flower");
+    }
+};
+
+let cuihua = {
+    recvFlower: (flower) => {
+        nvshen.recvFlower(flower);
+    }
+};
+
+let nvshen = {
+    recvFlower: (dongdong) => {
+        console.log("女神是我， 我收到了屌丝送来的 ：" + dongdong);
+    }
+};
+
+xiaoming.sendFlower(cuihua); // 女神是我， 我收到了屌丝送来的 ：flower
+```
+
+代码很简单，但是看起来繁琐， 没啥用。
+
+但是如果说，女神心情好的时候送花，成功的概率很大，不过对于小明来说不知道女神啥时候心情好，翠花可能知道啊：
+
+```javascript
+let xiaoming = {
+    sendFlower: (target) => {
+        target.recvFlower("flower");
+    }
+};
+
+let cuihua = {
+    recvFlower: (flower) => {
+        nvshen.listenGoodMood(() => {
+            nvshen.recvFlower(flower);
+        });
+    }
+};
+
+let nvshen = {
+    listenGoodMood: (fn) => {
+        setTimeout(() => {
+            console.log("本姑凉现在心情很不错。");
+            fn();
+        }, 1000)
+    },
+    recvFlower: (dongdong) => {
+        console.log("女神是我， 我收到了屌丝送来的 ：" + dongdong);
+    }
+};
+
+xiaoming.sendFlower(cuihua); // 女神是我， 我收到了屌丝送来的 ：flower
+```
+
+### 总结
+
+代理模式常用在我们无法直接访问的情况，或者需要更优的访问效果时可使用代理模式。
+
