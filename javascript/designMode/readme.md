@@ -4,6 +4,8 @@
 
 另外，我同时也是一名C程序员，所以也会考虑C语言当中如何实现。
 
+> **核心：设计模式的主题总是把不变的事物和变化的事物分离开来。**
+
 ## 单例模式
 
 ### 定义
@@ -514,3 +516,114 @@ salesOffices.trigger('100', '有了');
 
 - 解除对象之间的强耦合
 - 开放闭合原则，复用性更强，可扩展性更强，更灵活
+
+## 命令模式
+
+> 有时候需要向某些对象发送请求，但是并不知道请求的接收者是谁，也不知道被请求的操作是什么，此时希望用一种松耦合的方式来设计软件，使得请求发送者和请求接收者能够消除彼此之间的耦合关系。
+
+### 例子说明
+
+​	假设有一个快餐店，而我是该餐厅的点餐服务员，那么我一天的工作应该是这样的：当某位客人点餐或者打来订餐电话后，我会把他的需求都写在清单上，然后交给厨房，客人不用关心是哪些厨师帮他炒菜。我们餐厅还可以满足客人需要的定时服务，比如客人可能当前正在回家的路上，要求 1个小时后才开始炒他的菜，只要订单还在，厨师就不会忘记。客人也可以很方便地打电话来撤销订单。另外如果有太多的客人点餐，厨房可以按照订单的顺序排队炒菜。
+​	这些记录着订餐信息的清单，便是命令模式中的命令对象。
+
+```html
+<button id="button1">点击按钮1</button>
+<button id="button2">点击按钮2</button>
+<button id="button3">点击按钮3</button>
+```
+
+
+
+```javascript
+let button1 = document.getElementById('button1');
+let button2 = document.getElementById('button2');
+let button3 = document.getElementById('button3');
+
+
+// 发送命令
+let setCommand = function (button, command) {
+    button.onclick = () => {
+        command.execute();
+    };
+};
+
+// 具体命令实现，也是命令的最终接受者
+let MenuBar = {
+    refresh : () => {
+        console.log("刷新菜单目录");
+    }
+};
+
+let SubMenu = {
+    add : function () {
+        console.log("增加子菜单");
+    },
+    del : function () {
+        console.log("删除子菜单");
+    }
+};
+
+// 封装，类似服务员
+var RefreshMenuBarCommand = function( receiver ){
+    this.receiver = receiver;
+};
+
+RefreshMenuBarCommand.prototype.execute = function(){
+    this.receiver.refresh();
+};
+
+var AddSubMenuCommand = function( receiver ){
+    this.receiver = receiver;
+};
+
+AddSubMenuCommand.prototype.execute = function(){
+    this.receiver.add();
+};
+
+var DelSubMenuCommand = function( receiver ){
+    this.receiver = receiver;
+};
+
+DelSubMenuCommand.prototype.execute = function(){
+    console.log( '删除子菜单' );
+};
+
+// 最后就是把命令接收者传入到 command 对象中，并且把 command 对象安装到 button 上面：
+var refreshMenuBarCommand = new RefreshMenuBarCommand( MenuBar );
+var addSubMenuCommand = new AddSubMenuCommand( SubMenu );
+var delSubMenuCommand = new DelSubMenuCommand( SubMenu );
+// 这里最好不要直接使用回调函数，扩展性不强
+setCommand( button1, refreshMenuBarCommand );
+setCommand( button2, addSubMenuCommand );
+setCommand( button3, delSubMenuCommand );
+```
+
+### 撤销与修改
+
+上边的代码存在一些缺陷：
+
+- 无法撤销
+- 无法修改命令
+
+那么我们最好使用类似命令列表的形式，把命令都添加到列表里管理起来，这样就有很大的可操作性：
+
+- 可以修改
+- 可以撤销
+- 甚至可以控制执行时机，优先级
+
+## 组合模式
+
+> **组合模式**可以理解为层次的分级细化，类似一棵树，**从根到叶**。
+
+比如上边的命令模式，如果说一个命令又是由多个子命令构成，那么多个命令就是由更多子命令构成，层层扩散细化。其实大多架构都符合这样一个原理：层级问题，从高到底层；从底层组合成整体。符合开放-闭合原则，增加删除互不干扰；对于用户来说我只需要第一层，后面的不用管，对于第一层来说，只关心第二层...
+
+比如一个超级万能遥控器，一个开关就可以开启电视，空调，加湿器等等，但是底下可能说把所有开关功能都尝试了一遍。
+
+### 优缺点
+
+- 优点：
+  - 层级明确，条理清晰
+  - 扩展性好
+- 缺点：
+  - 系统开销增大，比如超级万能遥控器，所有开关都尝试过；而且如果经常只是用一个功能，效率就比较低了
+  - 安全问题，如果某个环节错误，可能会影响整个系统
