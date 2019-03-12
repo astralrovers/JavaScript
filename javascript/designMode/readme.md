@@ -830,7 +830,229 @@ let tea = new Tea();
 
 ## 状态模式
 
+### 定义
+
+> 允许一个对象在其内部状态改变时改变它的行为，对象看起来似乎修改了它的类。
+
+- 第一部分的意思是将状态封装成独立的类，并将请求委托给当前的状态对象，当对象的内部状态改变时，会带来不同的行为变化。
+- 第二部分是从客户的角度来看，我们使用的对象，在不同的状态下具有截然不同的行为，这个对象看起来是从不同的类中实例化而来的，实际上这是使用了委托的效果。
+
+### 举例说明
+
+有一个电灯，电灯只有一个开关。那么切换开关会有不同的效果。
+
+```javascript
+class Light {
+    constructor() {
+    	this.state = "off";  // 初始状态为关闭
+    	this.button = null;  // 开关按钮
+    }
+    
+    buttonWasPressed() {
+        if (this.state === 'off') {
+            console.log("开灯");
+            this.state = 'on';
+        } else if (this.state === 'on') {
+            console.log('关灯');
+            this.state = 'off';
+        }
+    }
+}
+
+let light = new Light();
+
+light.buttonWasPressed();
+light.buttonWasPressed();
+```
+
+但是呢，世界上的电灯可不只是这么简单而已，还有档数：
+
+```javascript
+...
+    buttonWasPressed() {
+        if (this.state === 'off') {
+            console.log("弱光");
+            this.state = 'weakLight';
+        } else if (this.state === 'weakLight') {
+            console.log('强光');
+            this.state = 'strongLight';
+        } else if (this.state === 'strongLight') {
+            console.log('关灯');
+            this.state = 'off';
+        }
+    }
+    ...
+```
+
+那么这里明显有些缺陷：
+
+- 违反开闭原则，每次增加修改`light`状态，都得去修改这个类
+- 甚至说还有其他特效，光强等等，我们无法估计这个类的大小，那么`buttonWasPressed`如何编写
+
+所以得改进。
+
+### 改进
+
+- 首先得明确状态之间得转换关系，关-弱光-强光-关
+- 抽象状态类
+
+```javascript
+class State {
+    constructor(light) {
+        this.light = light;
+    }
+
+    buttonWasPress() { }
+}
+
+
+class OffLight extends State {
+    constructor(light) {
+        super(light);
+    }
+
+    buttonWasPress() {
+        console.log("关灯");
+        this.light.setState(this.light.weakLightState);
+    }
+}
+
+class WeakLight extends State {
+    constructor(light) {
+        super(light);
+    }
+
+    buttonWasPress() {
+        console.log("弱光");
+        this.light.setState(this.light.strongLightState);
+    }
+}
+
+class StrongLight extends State {
+    constructor(light) {
+        super(light);
+    }
+
+    buttonWasPress() {
+        console.log("强光");
+        this.light.setState(this.light.offLightState);
+    }
+}
+
+
+class Light {
+    constructor() {
+        this.offLightState = new OffLight(this);
+        this.weakLightState = new WeakLight(this);
+        this.strongLightState = new StrongLight(this);
+        this.currState = this.offLightState;
+    }
+    setState(newState) {
+        this.currState = newState;
+    }
+    click() {
+        //console.log(this.currState);
+        this.currState.buttonWasPress();
+    }
+}
+
+let light = new Light();
+light.click();
+light.click();
+light.click();
+light.click();
+```
+
+
+
+### 优缺点
+
+- 状态模式定义了状态与行为之间的关系，并将它们封装在一个类里。通过增加新的状态类，很容易增加新的状态和转换。
+- 避免Context 无限膨胀，状态切换的逻辑被分布在状态类中，也去掉了Context 中原本过多的条件分支。
+- 用对象代替字符串来记录当前状态，使得状态的切换更加一目了然。
+- Context 中的请求动作和状态类中封装的行为可以非常容易地独立变化而互不影响。
+- 状态模式的缺点是会在系统中定义许多状态类，编写20 个状态类是一项枯燥乏味的工作，而且系统中会因此而增加不少对象。
+- 另外，由于逻辑分散在状态类中，虽然避开了不受欢迎的条件分支语句，但也造成了逻辑分散的问题，我们无法在一个地方就看出整个状态机的逻辑。
+
+优化：
+
+- 有两种选择来管理state 对象的创建和销毁。第一种是仅当state 对象被需要时才创建并随后销毁，另一种是一开始就创建好所有的状态对象，并且始终不销毁它们。如果state对象比较庞大，可以用第一种方式来节省内存，这样可以避免创建一些不会用到的对象并及时地回收它们。但如果状态的改变很频繁，最好一开始就把这些state 对象都创建出来，也没有必要销毁它们，因为可能很快将再次用到它们。
+
+
+
 ## 适配器模式
+
+适配器模式的作用是解决两个软件实体间的接口不兼容的问题。使用适配器模式之后，原本由于接口不兼容而不能工作的两个软件实体可以一起工作。
+
+比如`python`使用统一的接口去访问数据库。
+
+- 适配器模式主要用来解决两个已有接口之间不匹配的问题，它不考虑这些接口是怎样实现的，也不考虑它们将来可能会如何演化。适配器模式不需要改变已有的接口，就能够使它们协同作用。
+- 装饰者模式和代理模式也不会改变原有对象的接口，但装饰者模式的作用是为了给对象增加功能。装饰者模式常常形成一条长的装饰链，而适配器模式通常只包装一次。代理模式是为了控制对对象的访问，通常也只包装一次。
+- 外观模式的作用倒是和适配器比较相似，有人把外观模式看成一组对象的适配器，但外观模式最显著的特点是定义了一个新的接口。
+
+### 应用场景
+
+如果现有的接口已经能够正常工作，那我们就永远不会用上适配器模式。适配器模式是一种“亡羊补牢”的模式，没有人会在程序的设计之初就使用它。
+
+### 举例
+
+比如我们请求谷歌和百度地图：
+
+```javascript
+let googleMap = {
+    show : () => {
+        console.log("谷歌地图");
+    }
+};
+
+let baiduMap = {
+    show : () => {
+        console.log("百度地图");
+    }
+};
+
+let renderMap = (map) => {
+    if (map.show instanceof Function) {
+        map.show();
+    }
+};
+
+renderMap(googleMap);
+renderMap(baiduMap);
+```
+
+但是现实不大可能所有对象都是`show`这个方法，所以得对其进行适配：
+
+```javascript
+let googleMap = {
+    show : () => {
+        console.log("谷歌地图");
+    }
+};
+
+let baiduMap = {
+    display : () => {
+        console.log("百度地图");
+    }
+};
+
+let baiduMapAdapter = () => {
+    show : () => {
+        baiduMap.display();
+    }
+};
+
+let renderMap = (map) => {
+    if (map.show instanceof Function) {
+        map.show();
+    }
+};
+
+renderMap(googleMap);
+renderMap(baiduMapAdapter);
+```
+
+
 
 ## 工厂模式
 
