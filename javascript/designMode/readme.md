@@ -627,3 +627,204 @@ setCommand( button3, delSubMenuCommand );
 - 缺点：
   - 系统开销增大，比如超级万能遥控器，所有开关都尝试过；而且如果经常只是用一个功能，效率就比较低了
   - 安全问题，如果某个环节错误，可能会影响整个系统
+
+
+
+## 模板方法模式
+
+> 模板方法模式是一种只需使用继承就可以实现的非常简单的模式。
+
+模板方法模式由两部分结构组成：
+
+- 第一部分是抽象父类
+- 第二部分是具体的实现子类
+
+通常在抽象父类中封装了子类的算法框架，包括实现一些公共方法以及封装子类中所有方法的执行顺序。子类通过继承这个抽象类，也继承了整个算法结构，并且可以选择重写父类的方法。
+
+在模板方法模式中，子类实现中的相同部分被上移到父类中，而将不同的部分留待子类来实现。这也很好地体现了泛化的思想。
+
+### 例子
+
+一个经典的设计模式例子：咖啡和茶。
+
+来看看流程：
+
+- 咖啡：
+  - 烧开水
+  - 开水冲泡咖啡
+  - 咖啡倒进杯子
+  - 加糖和牛奶
+- 茶：
+  - 烧开水
+  - 开水浸泡茶叶
+  - 茶倒进杯子
+  - 加柠檬
+
+使用伪代码简单实现流程：
+
+```javascript
+class Coffee {
+    constructor() {
+        boilWater();
+        brewCoffeeGriends();
+        pourInCup();
+        addSugarAndMilk();
+    }
+}
+let coffee = new Coffee();
+
+class Tea {
+    constructor() {
+        boilWater();
+        steepTeaBag();
+        pourInCup();
+        addLemon();
+    }
+}
+let tea = new Tea();
+```
+
+我们发现步骤都差不多，那么我们可以把咖啡和茶进行泛化抽象：
+
+- 咖啡、茶统一称为*饮料*
+- 冲泡、浸泡统一称为*泡*
+
+- 加糖和牛奶、加柠檬统一称为*调料*
+
+那么步骤抽象为：
+
+- 烧水
+- 泡饮料
+- 饮料倒进杯子
+- 加调料
+
+代码实现：
+
+- 抽象饮料
+
+  ```javascript
+  class Beverage {
+      constructor() {}
+      boilWater() {}
+      brew() {}
+      pourInCup() {}
+      addCondiments() {}
+      init() {
+          this.boilWater();
+          this.brew();
+          this.pourInCup();
+          this.addCondiments();
+      }
+  }
+  ```
+
+- 咖啡继承实现具体子类
+
+  ```javascript
+  class Coffee extends Beverage {
+      constructor() {
+          super();
+      }
+      boilWater() {
+          console.log("烧开水");
+      }
+      brew() {
+          console.log("冲泡咖啡");
+      }
+      pourInCup() {
+          console.log("把咖啡倒进杯子");
+      }
+      addCondiments() {
+          console.log("加糖和牛奶");
+      }
+  }
+  
+  let coffee = new Coffee();
+  coffee.init();
+  ```
+
+- 茶继承实现具体子类
+
+  ```javascript
+  class Tea extends Beverage {
+      constructor() {
+          super();
+      }
+      boilWater() {
+          console.log("烧开水");
+      }
+      brew() {
+          console.log("浸泡茶叶");
+      }
+      pourInCup() {
+          console.log("把茶倒进杯子");
+      }
+      addCondiments() {
+          console.log("加柠檬");
+      }
+  }
+  
+  let tea = new Tea();
+  tea.init();
+  ```
+
+### 重要说明
+
+- 符合依赖倒置原则，这里讲到这个原则，就简单提一下：
+
+  依赖倒置原则的三个要点：
+
+  - 高层模块不依赖底层模块，两者都应该依赖其抽象。什么意思呢？即：
+
+    - 高层模块可以理解为一个统一调用接口或对象，底层模块可以理解为具体实现某个功能的接口或对象
+
+    - 高层模块调用底层模块时不应该指定调用某个具体的底层模块，因为这样局限性大大了，那要调用另一个底层模块怎么办呢?
+    - 这里需要将所有具体底层接口或对象抽象为一个统一可以表示的接口或对象，每个具体底层接口或对象在实现时要继承于抽象接口或对象；高层模块在实现时只需要使用抽象接口或对象中包含的方法和属性即可；在调用高层模块时，只需要传入一个继承于抽象并且实现了抽象的属性和方法的底层模块实例即可；那么高层模块在调用底层模块时就不需要关心调用的是哪个底层模块了，因为他们都继承于同一个抽象，类型相同，具有相同属性和方法，只是实现各自具体功能而已，比如上述的咖啡和茶各自的方法。
+
+  - 抽象不依赖于细节。即所有具体底层模块的抽象不应该和具体实现有任何关系。
+
+  - 细节应该依赖于抽象。即具体底层模块应该继承于抽象，并且要实现抽象中的方法。
+
+- 如何保证子类实现了抽象的方法呢？这里只说一种方式：
+
+  ```javascript
+  class Beverage {
+      constructor() {}
+      boilWater() {
+          throw new Error("子类必须重写 boilWater 方法");
+      }
+      brew() { ... }
+      pourInCup() { ... }
+      addCondiments() { ... }
+      init() {
+          this.boilWater();
+          this.brew();
+          this.pourInCup();
+          this.addCondiments();
+      }
+  }
+  ```
+
+  没实现就抛出异常，不过也只能在运行时才能体现出来。
+
+
+
+
+
+
+
+
+
+# 学习设计原则
+
+## 单一职责原则
+
+## 最少知识原则
+
+## 开放闭合原则
+
+## 依赖倒置原则
+
+## 接口隔离原则
+
+## 里式替换原则
