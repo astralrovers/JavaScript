@@ -290,3 +290,332 @@ POST 在服务器新建一个资源
 
 
 目的是前后端分离，前端只负责展示和渲染，后端负责数据处理。
+
+### 搭建一个RESTful Web服务
+
+- POST /articles——创建新文章；
+- GET /articles/:id——获取指定文章；
+- GET /articles——获取所有文章；
+- DELETE /articles/:id——删除指定文章。
+
+```javascript
+const express = require("express");
+const app = express();
+
+const articles = [
+    {
+        title:'Example'
+    }
+];
+
+//const port = process.env.PORT || 3000;
+app.set("port", process.env.PORT || 3000);
+
+app.get("/articles", (req, res, next) => {
+    res.send(articles);
+});
+
+app.post("/articles", (req, res, next) => {
+    res.send("OK");
+});
+
+app.get("/articles/:id", (req, res, next) => {
+    const id = req.params.id;
+    console.log(`Fetching: ${id}`);
+    res.send(articles[id]);
+});
+
+app.delete("/articles/:id", (req, res, next) => {
+    const id = req.params.id;
+    console.log(`Deleting: ${id}`);
+    delete articles[id];
+    res.send({message:'Deleted'});
+});
+
+app.get('/', (req, res) => {
+    res.send("Hello Nodejs and Express");
+});
+
+app.listen(app.get('port'), () => {
+    console.log(`Express web app available at localhost: ${app.get('port')}`);
+});
+
+module.exports = app;
+```
+
+部分知识点：
+
+- `app.set("port", process.env.PORT || 3000);`，这里其实就是设置一个键值对，使用`app.get(name)`来取值:
+
+  ```javascript
+  app.set('title', 'My Site');
+  app.get('title'); // "My Site"
+  ```
+
+  另外得话还可以设置其他一些特殊值：[官方手册](http://www.expressjs.com.cn/4x/api.html#app.set)
+
+### 路由
+
+`app.get()/post()...`方法，其实对应的是`HTTP`请求类型，这些请求类型被`express`分开了使用不同的接口处理，也就是路由。
+
+**注意这里的`app.get()`方法和取键值的`app.get()`方法不是同一个，原型如下：**
+
+```javascript
+app.get(path, callback [, callback ...])
+```
+
+- path：可以是字符串路径:`/abd`
+- 可以在字符串里使用正则表达式:`"/ab?d"`
+- 也可以直接使用js的正则表达式匹配规则:`/\/abd/`
+- 可以是参数形式:`/articles/:id`
+
+先看下`req`我们可以看到官方文档里这样描述的：
+
+> req对象表示HTTP请求，并具有请求查询字符串，参数，正文，HTTP标头等的属性。
+
+看下`req`的内容：
+
+```
+app.get("/articles/:id", (req, res, next) => {
+    const id = req.params.id;
+    console.log(req);
+    console.log(`Fetching: ${id}`);
+    res.send(articles[id]);
+});
+```
+
+访问`http://127.0.0.1:3000/articles/0`
+
+内容非常多，所以列举几个常见的：
+
+```json
+ headers:
+   { host: '127.0.0.1:3000',
+     connection: 'keep-alive',
+     'cache-control': 'max-age=0',
+     'upgrade-insecure-requests': '1',
+     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+     'accept-encoding': 'gzip, deflate, br',
+     'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7',
+     'if-none-match': 'W/"7-DwHtVqHjKgXl75bk13nzR4SvmpY"' 
+   },
+  url: '/articles/0',
+  method: 'GET',
+  statusCode: null,
+  statusMessage: null,
+    next: [Function: next],
+  baseUrl: '',
+  originalUrl: '/articles/0',
+  _parsedUrl:
+   Url {
+     protocol: null,
+     slashes: null,
+     auth: null,
+     host: null,
+     port: null,
+     hostname: null,
+     hash: null,
+     search: null,
+     query: null,
+     pathname: '/articles/0',
+     path: '/articles/0',
+     href: '/articles/0',
+     _raw: '/articles/0' },
+  params: { id: '0' },
+  query: {},
+  route:
+   Route {
+     path: '/articles/:id',
+     stack: [ [Object] ],
+     methods: { get: true } } }
+```
+
+
+
+>  所以呢这里的`id`指的就是参数，它被解析后存放在`req.params`里面，我们可以看下，这是个啥玩意儿:
+
+```javascript
+app.get("/articles/:id", (req, res, next) => {
+    const id = req.params.id;
+    console.log(req.params);
+    console.log(`Fetching: ${id}`);
+    res.send(articles[id]);
+});
+```
+
+访问`http://127.0.0.1:3000/articles/title`
+
+```javascript
+{ id: '0' }
+```
+
+很明显这是一个对象。
+
+> 另外挨着`params`的一个参数`query`，这个是啥呢：
+
+比如我们最常见的使用`GET`方法提交表单：`127.0.0.1/article/1?name=nodejs&age=23`:
+
+```javascript
+app.get("/articles/:id", (req, res, next) => {
+    const id = req.params.id;
+    console.log(req.params);
+    console.log(req.query);
+    console.log(`Fetching: ${id}`);
+    res.send(articles[id]);
+});
+```
+
+```shell
+{ id: '0' }
+{ name: 'nodejs', age: '23' }
+```
+
+所以也是一个键值对，不过是**查询字符串**
+
+
+
+> `app.get()..`**后面的参数是多个回调函数**，其实这里到涉及中间件。
+
+官方文档定义了这个函数：
+
+- 一个中间件功能
+- 一系列中间件函数，用逗号隔开
+- 一系列中间件功能
+
+那么啥是中间件功能呢？
+
+### 中间件
+
+在express中，中间件是非常重要的概念。一个请求，从浏览器发起，到服务端返回，生命周期大概是下面这样子：
+
+> 浏览器发起请求 -> 服务端收到请求 -> 中间件A -> 中间件B -> ... -> 服务端返回
+
+如果不了解也没关系，我们直接来看下，一个最简单中间件是什么样子的。
+
+- req：请求对象。可以从中获取请求相关信息，比如访问地址等。（浏览器 --> 服务器）
+- res：响应对象。可以向浏览器返回响应内容，比如返回HTML页面。（服务器 --> 浏览器）
+- next：一个函数。目前仅需要知道，next() 被调用时，控制权就会从当前中间件，转移到下一个中间件。
+
+```javascript
+function(req, res, next){
+    console.log('打印一些日志');
+    next(); 
+    // 如果不执行next(),那么程序会停在这儿直到超时，如果使用send()、end()等一些返回请求的函数，那么控制权就不会向下传递，认为此次请求结束了。
+}
+```
+
+举例：
+
+```javascript
+var express = require('express');
+var app = express();
+
+app.get('/hello', function(req, res, next){
+    console.log('打印访问日志');
+    next();
+});
+
+app.get('/hello', function(req, res, next){
+    console.log('假设我在访问数据库');
+    next();
+});
+
+app.get('/hello', function(req, res, next){
+    res.send('你好我是中间件！');
+});
+
+app.listen(3000);
+```
+
+那么结果如下：
+
+```shell
+# 浏览器显示
+你好我是中间件！
+# shell输出
+打印访问日志
+假设我在访问数据库
+```
+
+你也可以把它们写在一起（一系列）：
+
+```javascript
+app.get('/hello', function(req, res, next){
+    console.log('打印访问日志');
+    next();
+}, function(req, res, next){
+    console.log('假设我在访问数据库');
+    next();
+}, function(req, res, next){
+    res.send('你好我是中间件！');
+});
+```
+
+所以上边的回调函数都是中间件，只不过省略了`next`参数，而且在路由里面加中间件只会对当前的`URL`生效。
+
+另外还有一种使用中间件的方式：
+
+```javascript
+app.use(midName);
+```
+
+```javascript
+var express = require("express");
+var path = require("path");
+var fs = require("fs");
+var app = express();
+app.use(function (req, res, next) {
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + new Date());
+});
+app.listen(3000, function () {
+    console.log("App started on port 3000");
+});
+```
+
+```javascript
+Request IP: /
+Request date: Wed Mar 13 2019 22:43:53 GMT+0800 (DST)
+```
+
+但是这里没有执行`next()`会卡住直到超时，使用这种方式添加中间件的话，每个请求都会执行这个中间件函数：
+
+```javascript
+app.use(function (req, res, next) {
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + new Date());
+    next();
+});
+
+app.get("/hello", (req, res) => {
+    console.log("hello mid");
+    res.end("hello");
+});
+
+app.get("/world", (req, res) => {
+    console.log("world mid");
+    res.end("world");
+});
+```
+
+```shell
+Request IP: /hello
+Request date: Wed Mar 13 2019 22:48:55 GMT+0800 (DST)
+hello mid
+Request IP: /world
+Request date: Wed Mar 13 2019 22:49:03 GMT+0800 (DST)
+world mid
+```
+
+关于`app.use()`用法以后在学习。
+
+### 一点扩展
+
+**`curl`**
+
+使用它来访问URL:
+
+- curl http://localhost:3000/articles/0
+- curl http://localhost:3000/articles
+- curl -X DELETE http://localhost:3000/articles/0
