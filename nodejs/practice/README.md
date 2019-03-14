@@ -612,6 +612,91 @@ world mid
 
 ### 一点扩展
 
+**`body-parser`**
+
+在http请求种，POST、PUT、PATCH三种请求方法中包含着请求体，也就是所谓的request，在Nodejs原生的http模块中，请求体是要基于流的方式来接受和解析。
+ body-parser是一个HTTP请求体解析的中间件，使用这个模块可以解析JSON、Raw、文本、URL-encoded格式的请求体。
+
+Node原生的http模块中，是将用户请求数据封装到了用于请求的对象req中，这个对象是一个IncomingMessage，该对象同时也是一个可读流对象。需要自己去解析。
+
+Express框架默认使用body-parser作为请求体解析中间件。
+
+```javascript
+var bodyParser = require('body-parser');
+// 解析 application/json
+app.use(bodyParser.json()); 
+// 解析 application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded());
+```
+
+这样就可以在项目的application级别，引入了body-parser模块处理请求体。在上述代码中，模块会处理application/x-www-form-urlencoded、application/json两种格式的请求体。经过这个中间件后，就可以在所有路由处理器的req.body中访问请求参数。
+
+
+
+你也可以为不同的请求添加不同的解析方式：
+
+```javascript
+var express = require('express');
+var bodyParser = require('body-parser');
+
+var app = new express();
+
+//创建application/json解析
+var jsonParser = bodyParser.json();
+
+//创建application/x-www-form-urlencoded
+var urlencodedParser = bodyParser.urlencoded({extended: false});
+
+//POST /login 中获取URL编码的请求体
+app.post('/login', urlencodedParser, function(req, res){
+    if(!req.body) return res.sendStatus(400);
+    res.send('welcome, ' + req.body.username);
+})
+
+//POST /api/users 获取JSON编码的请求体
+app.post('/api/users', jsonParser, function(req,res){
+    if(!req.body) return res.sendStatus(400);
+    //create user in req.body
+})
+```
+
+
+
+也可以为不同的内容类型添加不同的解析方式：
+
+```javascript
+app.use(bodyParser.json({type: 'text/plain'}));
+// 解析自定义的 JSON
+app.use(bodyParser.json({ type: 'application/*+json' }));
+
+// 解析自定义的 Buffer
+app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }));
+
+// 将 HTML 请求体做为字符串处理
+app.use(bodyParser.text({ type: 'text/html' }));
+```
+
+
+
+当请求体解析之后，解析值会被放到req.body属性中，当内容为空时候，为一个空对象{}
+
+| API                       | 作用           | 默认协议头                          |
+| ------------------------- | -------------- | ----------------------------------- |
+| `bodyParser.json()`       | 解析JSON格式   | `application/json`                  |
+| `bodyParser.raw()`        | 解析二进制格式 | `application/raw`                   |
+| `bodyParser.text()`       | 解析文本格式   | `text/plain`                        |
+| `bodyParser.urlencoded()` | 解析文本格式   | `application/x-www-form-urlencoded` |
+
+
+
+**`POSTMAN`**
+
+[下载](https://www.getpostman.com/downloads/)
+
+用于调试发各种http请求的。
+
+
+
 **`curl`**
 
 使用它来访问URL:

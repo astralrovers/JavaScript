@@ -1,5 +1,9 @@
 const express = require("express");
+const bodyParser = require('body-parser');
 const app = express();
+
+const urlencodedParser = bodyParser.urlencoded({extended: false});
+const jsonParser = bodyParser.json();
 
 const articles = [
     {
@@ -18,10 +22,21 @@ app.post("/articles", (req, res, next) => {
     res.send("OK");
 });
 
-app.get("/articles/:id", (req, res, next) => {
+
+app.get("/articles/:id", urlencodedParser, (req, res, next) => {
     const id = req.params.id;
     console.log(req.params);
     console.log(req.query);
+    console.log(req.body);
+    console.log(`Fetching: ${id}`);
+    res.send(articles[id]);
+});
+
+app.post("/articles/:id", jsonParser, (req, res, next) => {
+    const id = req.params.id;
+    console.log(req.params);
+    console.log(req.query);
+    console.log(req.body);
     console.log(`Fetching: ${id}`);
     res.send(articles[id]);
 });
