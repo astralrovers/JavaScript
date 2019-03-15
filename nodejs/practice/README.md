@@ -608,7 +608,7 @@ app.get('/hello', function(req, res, next){
 另外还有一种使用中间件的方式：
 
 ```javascript
-app.use(midName);
+app.use([path], midName);
 ```
 
 ```javascript
@@ -658,6 +658,18 @@ Request IP: /world
 Request date: Wed Mar 13 2019 22:49:03 GMT+0800 (DST)
 world mid
 ```
+
+
+
+另外如果指定中间件path：
+
+```javascript
+app.use("/path", (req, res, next) => {
+    console.log(req.url);
+});
+```
+
+这个中间件只对`path`路径的访问起作用。
 
 关于`app.use()`用法以后在学习。
 
@@ -767,7 +779,7 @@ app.use(morgan("short"));
 
 ```javascript
 var staticPath = path.join(__dirname, "static"); // 设置静态文件的路径
-app.use(express.static(staticPath)); // 使用express.static从静态路径提供服务
+app.use(express.static(staticPath)); // 使用express.static从静态路径提供服务，没有写路由的时候，访问静态资源，会自动到这里寻找，比如`http://127.0.0.1:3000`会到这下面寻找index.html，设置路由是为了动态生成
 ```
 
 [官方参考](http://expressjs.com/zh-cn/starter/static-files.html)
@@ -1067,4 +1079,40 @@ express -e pro_web
 ```shell
 cnpm install
 ```
+
+### 一些常用`API`和对象
+
+- `set`方法设置键值对
+
+- `get`获取键值对
+
+- `get/post/delete`是`HTTP`动作
+
+- `use`注册中间件
+
+- `response.redirect`方法允许网址的重定向
+
+  ```javascript
+  response.redirect("/hello/anime");
+  response.redirect("http://www.example.com");
+  response.redirect(301, "http://www.example.com");
+  ```
+
+- `response.sendFile`方法用于发送文件
+
+  ```javascript
+  response.sendFile("/path/to/anime.mp4");
+  ```
+
+- `response.render`方法用于渲染网页模板
+
+  ```javascript
+  app.get("/", function(request, response) {
+    response.render("index", { message: "Hello World" });
+  });
+  ```
+
+- `request.ip`属性用于获得HTTP请求的IP地址
+
+- `request.files`用于获取上传的文件
 
