@@ -19,7 +19,7 @@
 - controllers/ 或 routes/——HTTP请求处理器；
 - middleware/——中间件组件。
 
-### 创建项目
+### 创建项目`express`
 
 **我们先创建一个新项目`later`：**
 
@@ -48,6 +48,8 @@ npm init -fy
   "license": "ISC"
 }
 ```
+
+`test`是用来做测试的，我们可以使用`mocha`
 
 **这里使用`express`来搭建服务器，首先安装：**
 
@@ -471,7 +473,7 @@ app.get("/articles/:id", (req, res, next) => {
 { name: 'nodejs', age: '23' }
 ```
 
-所以也是一个键值对，不过是**查询字符串**
+所以也是一个键值对，不过是**查询字符串**。
 
 
 
@@ -483,7 +485,56 @@ app.get("/articles/:id", (req, res, next) => {
 - 一系列中间件函数，用逗号隔开
 - 一系列中间件功能
 
-那么啥是中间件功能呢？
+那么啥是中间件功能呢？下一节介绍。
+
+#### 使用`Router`管理路由
+
+主要是用来管理大型程序的大量路径，进行分类管理。
+
+Router 的官方描述是：
+
+> Router 是一个独立于中间件和路由的实例，你可以将 Router 看作是只能执行执行中间件和路由的小型应用。而 Express 程序本身就内置了一个 Router 实例。
+>
+> Router 的行为与中间件类似，它可以通过 .use() 来调用其他的 Router 实例。
+>
+> 换句话就是，可以使用 Router 将应用划分为几个小的模块。虽然对于一些小型应用来说这样做可能是过度设计，但是一旦 app.js 中的路由扩张太快的话你就可以考虑使用 Router 进行模块拆分了。
+
+```javascript
+var express = require("express");
+var path = require("path");
+// 引入 API Router
+var apiRouter = require("./routes/api_router");
+var app = express();
+var staticPath = path.resolve(__dirname, "static");
+app.use(express.static(staticPath));
+// API Router 文件的调用
+app.use("/api", apiRouter);
+app.listen(3000);
+```
+
+`Router`的使用和中间件非常相似，`Router`本身就是一个中间件，所有以`/api`开头的请求都会被转到`apiRouter`处理。
+
+`api_router.js`：
+
+```javascript
+const express = require("express");
+
+let api = express.Router();
+
+api.get("/message", (req, res) => {
+    res.end("message");
+});
+
+api.get("/users", (req, res) => {
+    res.end("users");
+});
+
+module.exports = api;
+```
+
+
+
+
 
 ### 中间件
 
@@ -612,7 +663,7 @@ world mid
 
 ### 一点扩展
 
-**`body-parser`**
+#### **`body-parser`**中间件
 
 在http请求种，POST、PUT、PATCH三种请求方法中包含着请求体，也就是所谓的request，在Nodejs原生的http模块中，请求体是要基于流的方式来接受和解析。
  body-parser是一个HTTP请求体解析的中间件，使用这个模块可以解析JSON、Raw、文本、URL-encoded格式的请求体。
@@ -687,9 +738,143 @@ app.use(bodyParser.text({ type: 'text/html' }));
 | `bodyParser.text()`       | 解析文本格式   | `text/plain`                        |
 | `bodyParser.urlencoded()` | 解析文本格式   | `application/x-www-form-urlencoded` |
 
+#### 时间中间件
+
+```shell
+cnpm install morgan --save
+```
+
+```javascript
+var express = require("express");
+var morgan = require("morgan");
+...
+var app = express();
+app.use(morgan("short"));
+...
+```
+
+```shell
+::ffff:127.0.0.1 - GET /articles/0?name=js HTTP/1.1 200 19 - 32.275 ms
+```
+
+> 这里使用了 Morgan 中的 short 作为输出选项。当然你可以使用其他的选项设置：combined打印最多信息；tiny 打印最少的信息。
+
+#### 静态文件中间件
+
+`express`内置了一个静态文件中间件:`express.static`。(静态文件就是我们的静态资源:html， js， css...)
+
+[更深入的内容](http://evanhahn.com/express-dot-static-deep-dive/)
+
+```javascript
+var staticPath = path.join(__dirname, "static"); // 设置静态文件的路径
+app.use(express.static(staticPath)); // 使用express.static从静态路径提供服务
+```
+
+[官方参考](http://expressjs.com/zh-cn/starter/static-files.html)
+
+这里用到了`path`和`__dirname`：
+
+- `path`[简单参考](http://www.runoob.com/nodejs/nodejs-path-module.html)
+
+  - 方法
+
+  | 序号 | 方法 & 描述                                                  |
+  | ---- | ------------------------------------------------------------ |
+  | 1    | **path.normalize(p)** 规范化路径，注意'..' 和 '.'。          |
+  | 2    | **path.join([path1][, path2][, ...])** 用于连接路径。该方法的主要用途在于，会正确使用当前系统的路径分隔符，Unix系统是"/"，Windows系统是"\"。 |
+  | 3    | **path.resolve([from ...], to)** 将 **to** 参数解析为绝对路径，给定的路径的序列是从右往左被处理的，后面每个 path 被依次解析，直到构造完成一个绝对路径。 例如，给定的路径片段的序列为：/foo、/bar、baz，则调用 path.resolve('/foo', '/bar', 'baz') 会返回 /bar/baz。`path.resolve('/foo/bar', './baz'); // 返回: '/foo/bar/baz'  path.resolve('/foo/bar', '/tmp/file/'); // 返回: '/tmp/file'  path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif'); // 如果当前工作目录为 /home/myself/node， // 则返回 '/home/myself/node/wwwroot/static_files/gif/image.gif'` |
+  | 4    | **path.isAbsolute(path)** 判断参数 **path** 是否是绝对路径。 |
+  | 5    | **path.relative(from, to)** 用于将绝对路径转为相对路径，返回从 from 到 to 的相对路径（基于当前工作目录）。在 Linux 上：`path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb'); // 返回: '../../impl/bbb'`在 Windows 上：`path.relative('C:\\orandea\\test\\aaa', 'C:\\orandea\\impl\\bbb'); // 返回: '..\\..\\impl\\bbb'` |
+  | 6    | **path.dirname(p)** 返回路径中代表文件夹的部分，同 Unix 的dirname 命令类似。 |
+  | 7    | **path.basename(p[, ext])** 返回路径中的最后一部分。同 Unix 命令 bashname 类似。 |
+  | 8    | **path.extname(p)** 返回路径中文件的后缀名，即路径中最后一个'.'之后的部分。如果一个路径中并不包含'.'或该路径只包含一个'.' 且这个'.'为路径的第一个字符，则此命令返回空字符串。 |
+  | 9    | **path.parse(pathString)** 返回路径字符串的对象。            |
+  | 10   | **path.format(pathObject)** 从对象中返回路径字符串，和 path.parse 相反。 |
+
+  - 属性
+
+  | 序号 | 属性 & 描述                                                  |
+  | ---- | ------------------------------------------------------------ |
+  | 1    | **path.sep** 平台的文件路径分隔符，'\\' 或 '/'。             |
+  | 2    | **path.delimiter** 平台的分隔符, ; or ':'.                   |
+  | 3    | **path.posix** 提供上述 path 的方法，不过总是以 posix 兼容的方式交互。 |
+  | 4    | **path.win32** 提供上述 path 的方法，不过总是以 win32 兼容的方式交互。 |
+
+  - 实例
+
+  创建 main.js 文件，代码如下所示：
+
+  ```javascript
+  var path = require("path");
+  
+  // 格式化路径
+  console.log('normalization : ' + path.normalize('/test/test1//2slashes/1slash/tab/..'));
+  
+  // 连接路径
+  console.log('joint path : ' + path.join('/test', 'test1', '2slashes/1slash', 'tab', '..'));
+  
+  // 转换为绝对路径
+  console.log('resolve : ' + path.resolve('main.js'));
+  
+  // 路径中文件的后缀名
+  console.log('ext name : ' + path.extname('main.js'));
+  ```
+
+  代码执行结果如下：
+
+  ```shell
+  $ node main.js 
+  normalization : /test/test1/2slashes/1slash
+  joint path : /test/test1/2slashes/1slash
+  resolve : /web/com/1427176256_27423/main.js
+  ext name : .js
+  ```
+
+- `__dirname`
+
+  > `__dirname` 总是指向被执行 js 文件的绝对路径，所以当你在 `/d1/d2/myscript.js` 文件中写了 `__dirname`， 它的值就是 `/d1/d2`
+
+#### 错误处理中间件
+
+中间件种类：
+
+- 包含三个参数的常规中间件函数（有时 next 会被忽略而只保留两个参数），而绝大多数时候程序中都是使用这种常规模式。
+
+- 错误处理中间件：
+
+  当你的 app 处于错误模式时，所有的常规中间件都会被跳过而直接执行 Express 错误处理中间件。想要进入错误模式，只需在调用 next 时附带一个参数。这是调用错误对象的一种惯例，例如：
+
+  ```JavaScript
+  next(new Error("Something badhappened!"))；
+  ```
+
+  > 错误处理中间件中需要四个参数，其中后面三个和常规形式的一致而第一个参数则是
+  > next(new Error("Something bad happened!")) 中传递过来的 Error 对象。你可以像使用常规中间件一样来使用错误处理中间件，例如：调用 res.end 或者 next 。如果调用含参数的 next中间件会继续下一个错误处理中间件否则将会退出错误模式并调用下一个常规中间件。
+
+  ```javascript
+  app.use(function(err, req, res, next) {
+  	// 记录错误
+  	console.error(err);
+  	// 继续到下一个错误处理中间件
+  	next(err);
+  });
+  ```
+
+  请记住，这些错误处理中间件不管所在位置如何它都只能通过带参 next 进行触发：
+
+  ```javascript
+  //需要在前一个中间件执行
+  next(new Error("Something badhappened!"))；
+  ```
+
+#### 其他中间件
+
+- cookie-parser
+- compression
 
 
-**`POSTMAN`**
+
+#### **`POSTMAN`**工具
 
 [下载](https://www.getpostman.com/downloads/)
 
@@ -697,10 +882,189 @@ app.use(bodyParser.text({ type: 'text/html' }));
 
 
 
-**`curl`**
+#### **`curl`**工具
 
 使用它来访问URL:
 
 - curl http://localhost:3000/articles/0
 - curl http://localhost:3000/articles
 - curl -X DELETE http://localhost:3000/articles/0
+
+### 视图与模板
+
+> 模板的作用是为了使用同一个静态文件动态显示网页内容。
+
+那么我们使用模板的用到**视图引擎**，它是用来将数据和模板结合起来渲染成一个完整页面的插件。
+
+常用的视图引擎是`Pug`和`EJS`，模板语法的话都是大同小异的。这里我们使用`EJS`。
+
+```shell
+cnpm install ejs --save
+#路径，用于静态资源
+cnpm install path --save
+```
+
+先来运行一下:
+
+`index.js`
+
+```javascript
+var express = require("express");
+var path = require("path");
+var app = express();
+
+app.set("view engine", "ejs");
+app.set("views", path.resolve(__dirname, "views"));//规定了模板引擎的静态文件查找位置
+app.get("/", function(req, res) {
+    res.render("index");
+});
+
+app.listen(3000);
+```
+
+`mkdir views`
+
+`views/index.ejs`(后缀必须是`ejs`):
+
+```html
+<!doctype html>
+<html>
+    <head>
+        <title>express ejs</title>
+    </head>
+    <body>
+        <p>Hello World</p>
+    </body>
+</html>
+```
+
+#### 静态文件
+
+这里的示例使用原来的工程。
+
+前面也提到过静态文件，不过具体使用还没有操作过，我们先来看一个例子:
+
+我们想访问一张图片，第一种做法：
+
+`127.0.0.1:3000/my.jpg`
+
+`index.js`
+
+```javascript
+app.get("/my.jpg", (req, res) => {
+    res.sendFile(path.resolve(__dirname + "/my.jpg"));
+});
+```
+
+但是呢，如果我们的图片是放在同一的地方，而我也不想暴露图片存放的真实路径：
+
+`mv my.jpg imgs/`
+
+```javascript
+...
+app.use(express.static(path.resolve(__dirname, "imgs")));
+...
+
+app.get("/my.jpg", (req, res) => {
+    res.sendFile("my.jpg");
+});
+```
+
+找文件时，会到`imgs`文件夹下面去寻找。
+
+也可以使用多个:
+
+```javascript
+app.use(express.static(path.resolve(__dirname, "imgs")));
+app.use(express.static(path.resolve(__dirname, "public")));
+```
+
+会按顺序来，找到了就返回。
+
+
+
+不过如果说在不同的路径下存了相同文件名的不同资源，就会造成冲突，所以我们得对提供不同的路径去访问，但是就像前面提到的，不想暴露原始路径，那么我们可以提供不同的虚拟路径：
+
+```javascript
+app.use("/pictures", express.static(path.resolve(__dirname, "public")));
+app.use("/public", express.static(path.resolve(__dirname, "public")));
+```
+
+**现在回到主题**
+
+#### `EJS`讲解
+
+[官网](https://ejs.bootcss.com/)
+
+ejs的模板后缀为`.ejs`，不过也支持`.html`，需要设置:
+
+```javascript
+app.engine("html", ejs.renderFile);
+```
+
+`ejs`在`express`中使用注意点：
+
+- 需要制定模板引擎:
+
+  ```javascript
+  app.set("view engine","/ejs");
+  ```
+
+- 配置模板路径：
+
+  ```javascript
+  app.set("views", path.resolve(__dirname, "views"));
+  ```
+
+- 渲染：
+
+  ```javascript
+  res.render(path,data);
+  ```
+
+  data则是模板需要的数据。
+
+#### 使用完整的架构
+
+```shell
+cnpm install express-generator -g
+```
+
+ `express-generator` 可以快速创建一个应用的骨架。
+
+通过`express -h`来查看帮助。
+
+使用以下方式来创建项目：
+
+```shell
+express -e pro_web
+```
+
+```shell
+➜  pro_web git:(master) ✗ tree
+.
+├── app.js
+├── bin
+│   └── www
+├── package.json
+├── public
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+│       └── style.css
+├── routes
+│   ├── index.js
+│   └── users.js
+└── views
+    ├── error.ejs
+    └── index.ejs
+
+7 directories, 8 files
+```
+
+安装依赖：
+
+```shell
+cnpm install
+```
+
