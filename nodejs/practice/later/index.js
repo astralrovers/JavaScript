@@ -70,6 +70,9 @@ app.get('/', (req, res) => {
 });
 
 app.listen(app.get('port'), () => {
+console.log(process.env.NODE_ENV);
+
+console.log(app.get('env'));
     console.log(`Express web app available at localhost: ${app.get('port')}`);
 });
 

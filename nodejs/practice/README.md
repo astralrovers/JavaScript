@@ -115,6 +115,31 @@ app.listen(port, () => {
 
     `set port=3000`
 
+- `process.env.NODE_ENV`，另外一个环境变量，这个是用户自己定义的，一般用来指定程序运行模式：
+
+  - `production`产品模式
+
+  - `development`开发模式
+
+  - 使用方法：
+
+    > 要在 UNIX系统中设置环境变量，可以用这个命令：
+    > `$ NODE_ENV=production node app`
+    > 在 Windows中用这个：
+    > `$ set NODE_ENV=production`
+    > `$ node app`
+    > 这些环境变量会出现在程序里的 process.env 对象中
+
+    ```javascript
+    if (app.get('env') === 'development') { // 默认值
+    	app.use(express.errorHandler());
+    }
+    // 不设置的话这里是undefined
+    console.log(process.env.NODE_ENV);
+    ```
+
+    
+
 - `app.get`是`express`里面的路由，那么查看官方手册。
 
   - 这里对应`GET`方法
@@ -1028,10 +1053,21 @@ app.engine("html", ejs.renderFile);
   app.set("views", path.resolve(__dirname, "views"));
   ```
 
+- 关于`cache`，缓存是默认开启的，是为了避免每次都从硬盘读取，加快速度，不过这样一来就无法实时修改文件看效果，必须要重启，开发的时候最好是关闭:
+
+  ```javascript
+  app.set('view cache', false);
+  //或者
+  app.disable('view cache');
+  ```
+
+  
+
 - 渲染：
 
   ```javascript
   res.render(path,data);
+  // 这里的查找路径和reqiure一致，只是另外的话会再找views视图文件夹下面的
   ```
 
   data则是模板需要的数据。
@@ -1116,3 +1152,8 @@ cnpm install
 
 - `request.files`用于获取上传的文件
 
+
+
+## `webpack`
+
+[官网文档](https://www.webpackjs.com/concepts/)
