@@ -1157,3 +1157,243 @@ cnpm install
 ## `webpack`
 
 [官网文档](https://www.webpackjs.com/concepts/)
+
+## 简单用户认证构建
+
+创建项目:
+
+```shell
+ express -e users
+ cnpm install
+```
+
+安装`redis`，加密`bcrypt`
+
+```shell
+cnpm install --save redis bcrypt
+```
+
+创建模型：
+
+```shell
+mkdir models
+```
+
+### `User`模型基本接口:
+
+`models/users.js`
+
+```javascript
+const redis = require('redis');
+const bcrypt = require('bcrypt');
+// 创建到redis的长连接
+const db = redis.createClient();
+
+class User {
+    constructor(obj) {
+        // 设定当前user的所有属性
+        for (let key in obj) {
+            this[key] = obj[key];
+        }
+    }
+
+    update(cb) {
+        const id = this.id;
+        db.set(`user:id:$(this.name)`, id, (err) => { // 用名称索引用户ID
+            if (err) return cb(err);
+            db.hmset(`user:${id}`, this, (err) => { // 用redis存储当前类的属性
+                cb(err);
+            });
+        });
+    }
+
+    save(cb) {
+        if (this.id) {
+            this.update(cb); // 如果设置了ID，则认为用户存在
+        } else {
+            db.incr('user:ids', (err, id) => { // 创建唯一ID
+                if (err) return cb(err);
+                this.id = id;
+                this.hashPassword((err) => { // 密码哈希
+                    if (err) return cb(err);
+                    this.update(cb); // 保存用户属性
+                });
+            })
+        }
+    }
+
+    hashPassword(cb) {
+        bcrypt.genSalt(12, (err, salt) => { // 生成有12个字符的盐?
+            if (err) return cb(err);
+            bcrypt.hash(this.pass, salt, (err, hash) => { // 生成哈希
+                if (err) return cb(err);
+                this.pass = hash;
+                cb();
+            });
+        });
+    }
+}
+
+// 导出
+//module.exports = User;
+const user = new User({ name: 'Example', pass: 'test' });
+user.save((err) => {
+    if (err) console.log(err);
+    console.log(`user id %d`, user.id);
+});
+```
+
+安装`redis`：
+
+```shell
+sudo apt install redis
+# 启动
+redis-server
+# 客户端登录
+redis-cli
+```
+
+测试一下:
+
+```shell
+nodejs users.js
+# 输出
+user id 1
+```
+
+```shell
+127.0.0.1:6379> get user:ids
+"1"
+127.0.0.1:6379>
+```
+
+### 用户登录注册
+
+`routes/users.js`
+
+```shell
+var express = require('express');
+var router = express.Router();
+
+/* GET users listing. */
+router.get('/', function(req, res, next) {
+  res.send('respond with a resource');
+});
+
+router.get('/register', (req, res) => {
+    res.render('register', {title: 'Register'});
+});
+
+router.post('/register', (req, res) => {
+    res.end('ok');
+});
+
+module.exports = router;
+```
+
+`views/register.ejs`
+
+```ejs
+<!doctype html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title><%= title %></title>
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+    </head>
+    <body>
+        <h1><%= title %></h1>
+        <p>Fill in the form below to sign up!</p>
+        <form action='/users/register' method='post'>
+            <p>
+                <input type='text' name='user[name]' placeholder='Username' />
+            </p>
+            <p>
+                <input type='password' name='user[pass]' placeholder='Password' />
+            </p>
+            <p>
+                <input type='submit' value='Sign Up' />
+            </p>
+        </form>
+    </body>
+</html>
+```
+
+访问`http://127.0.0.1:3000/users/register`就看到效果了。
+
+但是呢，一般情况下，需要给用户提示信息，比如用户名已经被占用，所以这里在加一个：
+
+`views/message.ejs`
+
+```ejs
+<% if (locals.messages) { %>
+    <% messages.forEach((message) => { %>
+        <p class='<%= message.type %>'><%= message.string %></p>
+    <% }) %>
+    <% removeMessages() %>
+<% } %>
+```
+
+添加到`register.ejs`中：
+
+```ejs
+<% include messages %>
+```
+
+​	这个程序里的 messages.ejs模板是用来显示错误的。它会嵌入到很多模板中。这段代码会检查是否有变量 locals.messages ，如果有，模板会循环遍历这个变量以显示消息对象。每个消息对象都有 type 属性（如果需要，可以用消息做非错误通知）和 string 属性（消息文本）。我们可以把要显示的错误添加到 res.locals.messages 数组中形成队列。消息显示之后，调用 removeMessages 清空消息队列。
+
+
+
+> 向 res.locals.messages 中添加消息是一种简单的用户沟通方式，但在重定向后 res.locals会丢失，所以如果要跨越请求传递消息，那么需要用到会话。
+
+​	Post/Redirect/Get（PRG）是一种常用的 Web程序设计模式。这种模式是指，用户请求表单，表单数据作为 HTTP POST 请求被提交，然后用户被重定向到另外一个 Web页面上。用户被重定向到哪里取决于表单数据是否有效。如果表单数据无效，程序会让用户回到表单页面。如果表单数据有效，程序会让用户到新的 Web页面中。
+
+​	PRG模式主要是为了防止表单的重复提交。在 Express中，用户被重定向后， res.locals 中的内容会被重置。如果把发给用户的消息存在 res.locals 中，这些消息在显示之前就已经丢了。把消息存在会话变量中可以解决这个问题。确保消息在重定向后的页面上仍然能够显示。
+
+```shell
+mkdir middleware
+cd middleware
+touch message.js
+```
+
+```javascript
+const express = require("express");
+
+function message(req) {
+    return (msg, type) => {
+        type = type || 'info';
+        let sess = req.session;
+        sess.messages = sess.messages || [];
+        sess.messages.push({ type: type, string: msg });
+    };
+};
+
+module.exports = (req, res, next) => {
+    res.message = message(req);
+    res.error = (msg) => {
+        return res.message(msg, 'error');
+    };
+    res.locals.messages = req.session.messages || [];
+    res.locals.removeMessages = () => {
+        req.session.messages = [];
+    };
+    next();
+};
+```
+
+​	res.message 函数可以把消息添加到来自任何 Express 请求的会话变量中。 express.response对象是 Express给响应对象用的原型。所有中间件和路由都能访问到添加到这个对象中的属性。在前面的代码中， express.response 被赋值给了一个名为 res 的变量，这样添加属性更容易，可读性也提高了。
+
+
+
+​	这个功能需要会话支持，为此我们需要一个跟 Express兼容的中间件模块，官方支持的包是express-session。用 `cnpm install --save express-session` 安装，然后把它添加到 app.js中:
+
+```javascript
+const session = require('express-session');
+...
+app.use(session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: true
+}));
+```
+
