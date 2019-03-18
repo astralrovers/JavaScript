@@ -1342,15 +1342,13 @@ module.exports = router;
 
 ​	这个程序里的 messages.ejs模板是用来显示错误的。它会嵌入到很多模板中。这段代码会检查是否有变量 locals.messages ，如果有，模板会循环遍历这个变量以显示消息对象。每个消息对象都有 type 属性（如果需要，可以用消息做非错误通知）和 string 属性（消息文本）。我们可以把要显示的错误添加到 res.locals.messages 数组中形成队列。消息显示之后，调用 removeMessages 清空消息队列。
 
-<<<<<<< HEAD
-
 
 > 向 res.locals.messages 中添加消息是一种简单的用户沟通方式，但在重定向后 res.locals会丢失，所以如果要跨越请求传递消息，那么需要用到会话。
 
 ​	Post/Redirect/Get（PRG）是一种常用的 Web程序设计模式。这种模式是指，用户请求表单，表单数据作为 HTTP POST 请求被提交，然后用户被重定向到另外一个 Web页面上。用户被重定向到哪里取决于表单数据是否有效。如果表单数据无效，程序会让用户回到表单页面。如果表单数据有效，程序会让用户到新的 Web页面中。
 
-​	PRG模式主要是为了防止表单的重复提交。在 Express中，用户被重定向后， res.locals 中的内容会被重置。如果把发给用户的消息存在 res.locals 中，这些消息在显示之前就已经丢了。把消息存在会话变量中可以解决这个问题。确保消息在重定向后的页面上仍然能够显示。
-=======
+​PRG模式主要是为了防止表单的重复提交。在 Express中，用户被重定向后， res.locals 中的内容会被重置。如果把发给用户的消息存在 res.locals 中，这些消息在显示之前就已经丢了。把消息存在会话变量中可以解决这个问题。确保消息在重定向后的页面上仍然能够显示。
+
 > 向 res.locals.messages 中添加消息是一种简单的用户沟通方式，但在重定向后 res.locals会丢失，所以如果要跨越请求传递消息，那么需要用到会话。
 >
 > **重点**：
@@ -1364,8 +1362,6 @@ module.exports = router;
 ​	Post/Redirect/Get（PRG）是一种常用的 Web程序设计模式。这种模式是指，用户请求表单，表单数据作为 HTTP POST 请求被提交，然后用户被重定向到另外一个 Web页面上。用户被重定向到哪里取决于表单数据是否有效。如果表单数据无效，程序会让用户回到表单页面。如果表单数据有效，程序会让用户到新的 Web页面中。
 
 ​	PRG模式主要是为了防止表单的重复提交。**在 Express中，用户被*重定向后*， res.locals 中的内容会被重置。如果把发给用户的消息存在 res.locals 中，这些消息在显示之前就已经丢了。**把消息存在会话变量中可以解决这个问题。确保消息在重定向后的页面上仍然能够显示。
->>>>>>> dd05933a421bc1f61606d350d0fbad40bfee0a37
-
 ```shell
 mkdir middleware
 cd middleware
@@ -1397,9 +1393,8 @@ module.exports = (req, res, next) => {
 };
 ```
 
-<<<<<<< HEAD
-​	res.message 函数可以把消息添加到来自任何 Express 请求的会话变量中。 express.response对象是 Express给响应对象用的原型。所有中间件和路由都能访问到添加到这个对象中的属性。在前面的代码中， express.response 被赋值给了一个名为 res 的变量，这样添加属性更容易，可读性也提高了。
-=======
+​res.message 函数可以把消息添加到来自任何 Express 请求的会话变量中。 express.response对象是 Express给响应对象用的原型。所有中间件和路由都能访问到添加到这个对象中的属性。在前面的代码中， express.response 被赋值给了一个名为 res 的变量，这样添加属性更容易，可读性也提高了。
+
 ​	**res.message 函数可以把消息添加到来自任何 Express 请求的会话变量中。** express.response对象是 Express给响应对象用的原型。所有中间件和路由都能访问到添加到这个对象中的属性。在前面的代码中， express.response 被赋值给了一个名为 res 的变量，这样添加属性更容易，可读性也提高了。
 
 > **关于会话**
@@ -1415,7 +1410,6 @@ module.exports = (req, res, next) => {
 > - 点击`submit`提交，这个时候`res`有了`error`这个函数，在注册失败时`error`函数执行，错误信息被保存在了`req.session`里面
 > - 错误之后会重定向页面，即回到主页页面，这时候也会发起请求，这个时候呢，`req.session`里面是有东西的，保存了错误信息，那么`res.locals.message`也就有数据了，个模板渲染完后又执行`res.locals.removeMessages`清空了`req.session`里面的数据。
 > - 其实我们可以打印一下，在注册失败时这个中间件执行了多少次。
->>>>>>> dd05933a421bc1f61606d350d0fbad40bfee0a37
 
 
 
