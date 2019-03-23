@@ -60,6 +60,7 @@ class User {
 
     static getByName(name, cb) {
         User.getId(name, (err, id) => {
+            console.log(id);
             if (err) return cb(err);
             User.get(id, cb);
         });
@@ -88,7 +89,7 @@ user.save((err) => {
 });
 */
 /*
-User.getByName('tobi', (err, user) => {
-    console.log(user);
+User.getByName('Example', (err, user) => {
+    console.log(user.name);
 });
 */

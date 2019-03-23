@@ -1,5 +1,13 @@
 # 学习`webpack`
 > 通俗点说就是把源码(js,html,css,图片等)解析打包。
+
+**关于这个学习项目在不同平台上安装时出现的问题**:
+`[fsevents@^1.2.7] optional install error: Package require os(darwin) not compatible with your platform(linux)`
+解决:
+```shell
+cnpm rebuild node-sass
+cnpm install
+```
 ## 安装
 4.x需要安装两个: `webpack` 和 `webpack-cli`
 ```shell
@@ -294,3 +302,19 @@ module: {
   },
   ...
 ```
+### 更多的loader
+还有处理css的，加前缀适应不同的浏览器autoprefixer、postcss-loader。
+### css压缩
+压缩优化css文件资源mini-css-plugin:
+`cnpm install optimize-css-assets-webpack-plugin --save-dev`
+`webpack.config.js`:
+```javascript
+const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin');
+...
+    optimization: { // 优化项
+        minimizer: [
+            new OptimizeCssPlugin()
+        ]
+    },
+```
+不过这个时候发现js文件的压缩没有了，

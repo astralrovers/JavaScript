@@ -1,9 +1,16 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
     mode: 'development', // 模式 默认两种production 和 development
+    optimization: { // 优化项
+        minimizer: [
+            new OptimizeCssPlugin()
+        ]
+
+    },
     devServer: { // 开发服务器配置
         port: 3000, // 端口
         progress: true,
@@ -20,11 +27,13 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './src/index.html', // 模板文件
             filename: 'index.html', // 输出文件名，会放在前面配置的出口路径下
+            /*
             minify: { // 压缩html文件
                 removeAttributeQuotes: true, // 删除html里面属性的双引号
                 collapseWhitespace: true, // 合并成一行
                 hash: true // 增加hash戳
             }
+            */
         }),
         new MiniCssExtractPlugin({
             filename:'main.css' // 输出的css文件名

@@ -13,18 +13,22 @@ router.get('/register', (req, res) => {
 
 router.post('/register', (req, res, next) => {
     const data = req.body;
+    console.log(`user name = ${data.name}`);
     User.getByName(data.name, (err, user) => { // 检name是否被占用
         if (err) return next(err); // 
+        console.log(`user id = ${user.id}`);
         if (user.id) { // 用户名存在
             res.error('Username already taken!');
             res.redirect('back'); // 重定向到上一级
         } else {
+            console.log("add user");
             user = new User({
                 name: data.name,
                 pass: data.pass
             });
             user.save((err) => {
                 if (err) return next(err);
+                console.log(`user id = ${user.id}`);
                 req.session.uid = user.id;
                 res.redirect('/');
             });
