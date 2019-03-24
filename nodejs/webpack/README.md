@@ -317,4 +317,134 @@ const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin');
         ]
     },
 ```
-不过这个时候发现js文件的压缩没有了，
+不过这个时候发现js文件的压缩没有了，我们要安装另一个插件：`cnpm install uglifyjs-webpack-plugin --save-dev`。
+`webpack-config.js`:
+```javascript
+const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
+...
+new UglifyjsWebpackPlugin({
+    cache: true, // 是否缓存
+    parallel: true, // 并发，一起压缩多个
+    sourceMap: true
+}),
+```
+`npm run build`
+报错：`ERROR in bundle.js from UglifyJs`,后面再在解决。
+
+## 转化js代码
+主要是es6转化为es5，因为不是所有浏览器都支持es6.
+`cnpm install babel-loader @babel/core @babel/preset-env --save-dev`
+`webpack-config.js`:
+```javascript
+{
+    test:/\.js$/,
+    use: {
+        loader: 'babel-loader',
+        options: { // 用babel-loader 把es6转化为es5
+            presets: [
+                '@babel/preset-env'
+            ]
+        }
+    }
+},
+```
+现在我们写的es6语法的语句会被转换为es5，并且前面那个问题也解决了。
+另外的话也还有其他的关于跟高级js语法转化为es5语法的插件。
+## 打包图片
+### 图片使用方式
+ - js中创建图片:
+   ```javascript
+   let img = new Image();
+   img.src = 'logo.jpg';
+   // 不过这种方式得到的就是一个字符串，最后的图片还得自己放到/dist里面
+   import logo from './logo.jpg' // 引入图片，返回的是一个新的图片地址，不是原始图片
+   // 安装loader，file-loader
+   // 默认生成一张图片到dist目录下，并返回生成的图片名字
+   ```
+   `index.js`:
+   ```javascript
+   import logo from './logo.jpg'
+   let img = new Image();
+   img.src = logo;
+   document.body.appendChild(img);
+   ```
+   `webpack.config.js`:
+   ```javascript
+    {
+        test: /\.(jpg|png|gif)$/,
+        use:'file-loader'
+    },
+   ```
+ - css中引用
+   我们之前使用的插件css-loader本身是支持的:
+   `backgroud-img: url('./logo.jpg');`
+ - html中直接插入
+   这里的话就要使用loader:`html-withimg-loader`
+   `index.html`:
+   ```html
+        <img src="./logo.jpg" alt="">
+   ```
+   `webpack.config.js`:
+   ```javascript
+               {
+                test: /\.html$/,
+                use: 'html-withimg-loader'
+            },
+   ```
+
+### 对于小图片直接转化为base64格式嵌入在代码里
+这样做是为了减少请求次数:`url-loader`
+`webpack.config.js`:
+```javascript
+test: /\.(jpg|png|gif)$/,
+// use:'file-loader'
+// 当图片小于200k时把图片打包成base64编码，否则使用file-loader来产生一张真实存在的图片
+use: {
+    loader: 'url-loader',
+    options: {
+        limit: 200 * 1024,
+        outputPath: 'img' // 存放到img目录下,并且最后的图片路径会自动加上路径
+        // 像其他的文件也可以加路径进行分类，配合publicPath使用更佳
+    }
+}
+```
+
+## 多页打包
+多页打包，也就是我们可能需要使用多个js生成多个js文件，那么就需要使用多页打包机制:
+我们再来创建一个js文件:`src/home.js`;
+修改`webpack.config.js`:
+```javascript
+    // entry: './src/index.js', // 入口
+    entry: {
+        index: './src/index.js',
+        home: './src/home.js'
+    },
+    output: { // 出口
+        // //filename: 'bundle.[hash:8].js', // 生成的文件名 [hash]表示加hash值(只要8位)，配合后面的plugin使用
+        // filename: 'bundle.js',
+        // path: path.resolve(__dirname, 'dist'), // 路径，必须是一个局对路径
+        // // publicPath: './' // 自动在静态文件名前面加路径，这样就不会引用错了，一般是绝对路径:http:xxx.com/
+        filename: '[name].js', // 这里的name就表示index和home，会单独生成两个文件
+        path: path.resolve(__dirname, 'dist')
+    },
+        plugins:[ // 数组，放着所有插件，每个都是一个插件实例
+        new HtmlWebpackPlugin({
+            template: './src/index.html', // 模板文件
+            filename: 'index.html', // 输出文件名，会放在前面配置的出口路径下
+            chunks: ['index'] // 把前面的分页打包index.js插入到index.html中,home.js不要
+            /*
+            minify: { // 压缩html文件
+                removeAttributeQuotes: true, // 删除html里面属性的双引号
+                collapseWhitespace: true, // 合并成一行
+                hash: true // 增加hash戳
+            }
+            */
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            filename: 'home.html',
+            chunks: ['index', 'home']
+        }),
+        ...
+```
+运行：`npm run build`就看到效果了。
