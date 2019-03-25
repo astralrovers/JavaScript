@@ -448,3 +448,97 @@ use: {
         ...
 ```
 运行：`npm run build`就看到效果了。
+
+## 代码变化自动打包
+> 当代码变化时使用`watch`自动实时打包代码.
+`webpack.config.js`:
+```javascript
+    watch: true,
+    watchOptions: {
+        poll: 1000, // 单位是毫秒，即每秒一次
+        // 当第一个文件更改，会在重新构建前增加延迟。
+        aggregateTimeout: 500,// 防抖 比如一直输入代码，
+        ignored: /node_modules/  // 这个文件不需要监控
+    },
+```
+## 小插件
+ - `cleanWebpackPlugin` 清除，每次打包之前把输出目录下的文件先删掉，这样下面的文件都是最新的，需要的，不会出现上次留下的不需要的文件
+   ```javascript
+   const CleanWebpackPlugin = require('clean-webpack-plugin');
+   new CleanWebpackPlugin('./dist'), // 
+   ```
+ - `copyWebpackPlugin` 把其他一些文档也拷贝到输出目录，当作最终的打包文件。
+   ```javascript
+   const CopyWebpackPlugin = require('copy-webpack-plugin');
+           new CopyWebpackPlugin([ // 一个数组
+            {from:'./README.md', to:'./'}
+        ]),
+   ```
+ - `bannerPlugin` 内置
+   ```javascript
+   const webpack = require('webpack');
+   new webpack.BannerPlugin('make 2019 by astralrovers'), // 给每个文件加注释，不过只有js和css文件有
+   ```
+
+## 关于简单的跨域
+这里配置的跨域是关于`webpack-server`的，比如我们自己用`express`写了个服务器:
+`server.js`
+```javascript
+const express = require('express');
+
+let app = express();
+
+app.get('/user', (req, res) => {
+    res.end('hello');
+});
+
+app.listen(3000);
+```
+上边的服务器在我们访问:`http://localhost:3000/user/`时返回`hello`
+但是呢我们想通过`webpack-server`的服务器访问`http://localhost:8080/api/user/`去访问`express`服务器的这个页面，
+这个时候就要用到跨域了：
+`webpack.config.js`
+```javascript
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3000', // 目标域名
+                pathRewrite: {
+                    '/api':'' // 替换路径，把webpack-server访问的路径里面的/api替换为空，只要后面的路径
+                                // http://localhost:8080/api/user/ ==> http://localhost:3000/user/
+                }
+            }
+        }
+```
+
+另外的话也可以使用模拟的方式（钩子函数，在访问前面加一层），这个时候就不是跨域了，而是模拟接口：
+```javascript
+        before(app) {
+            app.get('/user', (req, res) => {
+                res.end('hello');
+            });
+        }
+        // 直接访问http://localhost:8080/user/
+```
+
+另外一种方法是使用服务端启动webpack，就不存在跨域了，而且直接使用服务器的端口:
+`server.js`
+```javascript
+const express = require('express');
+const webpack = require('webpack');
+const webpackMiddleware = require('webpack-dev-middleware');
+
+let app = express();
+
+let config = require('./webpack.config.js');
+
+let compile = webpack(config);
+
+app.use(webpackMiddleware(compile));
+
+app.get('/user', (req, res) => {
+    res.end('hello');
+});
+
+app.listen(3000);
+```
+直接访问`http://127.0.0.1:3000/user`和`http://127.0.0.1:3000`

@@ -3,6 +3,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
     mode: 'development', // 模式 默认两种production 和 development
@@ -19,15 +22,40 @@ module.exports = {
 
     },
     devServer: { // 开发服务器配置
-        port: 3000, // 端口
+        port: 8080, // 端口
         progress: true,
         contentBase:'./dist', // 默认执行目录
-        open: true // 自动打开浏览器
+        open: true, // 自动打开浏览器
+        // proxy: {
+        //     '/api': {
+        //         target: 'http://localhost:3000', // 目标域名
+        //         pathRewrite: {
+        //             '/api':'' // 替换路径，把webpack-server访问的路径里面的/api替换为空，只要后面的路径
+        //                         // http://localhost:8080/api/user/ ==> http://localhost:3000/user/
+        //         }
+        //     }
+        // }
+        // before(app) {
+        //     app.get('/user', (req, res) => {
+        //         res.end('hello');
+        //     });
+        // }
     },
     // entry: './src/index.js', // 入口
     entry: {
         index: './src/index.js',
         home: './src/home.js'
+    },
+    // 源码映射，会单独生成一个sourcemap文件，出错了会标识当前报错的行和列
+    // devtool: 'eval-source-map', // 不会产生单独的文件，但是可以显示行和列
+    // devtool: 'cheap--source-map', // 
+    devtool: 'source-map', // 增加映射文件，帮助调试代码
+    //watch: true,
+    watchOptions: {
+        poll: 1000, // 单位是毫秒，即每秒一次
+        // 当第一个文件更改，会在重新构建前增加延迟。
+        aggregateTimeout: 500,// 防抖 比如一直输入代码，
+        ignored: /node_modules/  // 这个文件不需要监控
     },
     output: { // 出口
         // //filename: 'bundle.[hash:8].js', // 生成的文件名 [hash]表示加hash值(只要8位)，配合后面的plugin使用
@@ -58,6 +86,11 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename:'main.css' // 输出的css文件名
         }),
+        new CleanWebpackPlugin(), // 自动识别输出目录
+        new CopyWebpackPlugin([ // 一个数组
+            {from:'./README.md', to:'./'}
+        ]),
+        new webpack.BannerPlugin('make 2019 by astralrovers'), // 给每个文件加注释，不过只有js和css文件有
     ],
     module: { // 模块
         rules: [ // 模块解析规则
